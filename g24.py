@@ -27,7 +27,8 @@ class TwentyFourCalculator:
             rst = abs(nums[0][0] - 24) < 0.0001
             if rst:
                 cards_hash = self.get_hash(cards)
-                self.cards[cards_hash] = nums[0][1]
+                sln_path = nums[0][1][1:-1]
+                self.cards[cards_hash] = sln_path
             return rst
 
         rst = False
@@ -38,20 +39,23 @@ class TwentyFourCalculator:
             others = [nums[perm[i]] for i in range(2, len(perm))]
 
             # Add
-            rst = rst or self.go4([[n1 + n2, f'({p1})+({p2})']] + others, cards)
+            rst = rst or self.go4([[n1 + n2, self.get_expression(p1, p2, '+')]] + others, cards)
             # Sub
             if n1 >= n2:
-                rst = rst or self.go4([[n1 - n2, f'({p1})-({p2})']] + others, cards)
+                rst = rst or self.go4([[n1 - n2, self.get_expression(p1, p2, '-')]] + others, cards)
             if n2 >= n1:
-                rst = rst or self.go4([[n2 - n1, f'({p2})-({p1})']] + others, cards)
+                rst = rst or self.go4([[n2 - n1, self.get_expression(p2, p1, '-')]] + others, cards)
             # Mul
-            rst = rst or self.go4([[n1 * n2, f'({p1})*({p2})']] + others, cards)
+            rst = rst or self.go4([[n1 * n2, self.get_expression(p1, p2, '*')]] + others, cards)
             # Div
             if n2 != 0:
-                rst = rst or self.go4([[n1 / n2, f'({p1})/({p2})']] + others, cards)
+                rst = rst or self.go4([[n1 / n2, self.get_expression(p1, p2, '/')]] + others, cards)
             if n1 != 0:
-                rst = rst or self.go4([[n2 / n1, f'({p2})/({p1})']] + others, cards)
+                rst = rst or self.go4([[n2 / n1, self.get_expression(p2, p1, '/')]] + others, cards)
         return rst
+
+    def get_expression(self, path1, path2, ops):
+        return f'({path1}{ops}{path2})'
 
     def get_perms(self, k):
         '''Get permutation of possible operations.'''
