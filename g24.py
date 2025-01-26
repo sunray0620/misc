@@ -1,4 +1,5 @@
 from typing import List
+import time
 
 
 class TwentyFourCalculator:
@@ -34,7 +35,6 @@ class TwentyFourCalculator:
         return rst
 
     def go2(self, nums, cards):
-        nums = sorted(nums)
         
         rst = False
         [n1, p1], [n2, p2] = nums[0], nums[1]
@@ -51,7 +51,6 @@ class TwentyFourCalculator:
         return rst
 
     def go3(self, nums, cards):
-        nums = sorted(nums)
         rst = False
         perms = [[0, 1, 2], [0, 2, 1], [1, 2, 0]]
         for i1, i2, i3 in perms:
@@ -69,22 +68,31 @@ class TwentyFourCalculator:
         return rst
 
     def go4(self, nums, cards):
-        nums = sorted(nums)
+        k = len(nums)
         rst = False
-        perms = [[0, 1, 2, 3], [0, 2, 1, 3], [0, 3, 1, 2], [1, 2, 0, 3], [1, 3, 0, 2], [2, 3, 0, 1]]
-        for i1, i2, i3, i4 in perms:
-            [n1, p1], [n2, p2], [n3, p3], [n4, p4] = nums[i1], nums[i2], nums[i3], nums[i4]
+        perms = self.get_perms(k)
+        for perm in perms:
+            # First 2 will be inlcuded in the next operation.
+            [n1, p1], [n2, p2] = nums[perm[0]], nums[perm[1]]
+            others = [nums[perm[i]] for i in range(2, len(perm))]
+
             # Add
-            rst = rst or self.go3([[n1 + n2, f'({p1})+({p2})'], [n3, p3], [n4, p4]], cards)
+            rst = rst or self.go3([[n1 + n2, f'({p1})+({p2})']] + others, cards)
             # Sub
-            if n1 >= n2: rst = rst or self.go3([[n1 - n2, f'({p1})-({p2})'], [n3, p3], [n4, p4]], cards)
-            if n2 >= n1: rst = rst or self.go3([[n2 - n1, f'({p2})-({p1})'], [n3, p3], [n4, p4]], cards)
+            if n1 >= n2: rst = rst or self.go3([[n1 - n2, f'({p1})-({p2})']] + others, cards)
+            if n2 >= n1: rst = rst or self.go3([[n2 - n1, f'({p2})-({p1})']] + others, cards)
             # Mul
-            rst = rst or self.go3([[n1 * n2, f'({p1})*({p2})'], [n3, p3], [n4, p4]], cards)
+            rst = rst or self.go3([[n1 * n2, f'({p1})*({p2})']] + others, cards)
             # Div
-            if n2 != 0: rst = rst or self.go3([[n1 / n2, f'({p1})/({p2})'], [n3, p3], [n4, p4]], cards)
-            if n1 != 0: rst = rst or self.go3([[n2 / n1, f'({p2})/({p1})'], [n3, p3], [n4, p4]], cards)
+            if n2 != 0: rst = rst or self.go3([[n1 / n2, f'({p1})/({p2})']] + others, cards)
+            if n1 != 0: rst = rst or self.go3([[n2 / n1, f'({p2})/({p1})']] + others, cards)
         return rst
+
+    def get_perms(self, k):
+        if k == 4: return [[0, 1, 2, 3], [0, 2, 1, 3], [0, 3, 1, 2], [1, 2, 0, 3], [1, 3, 0, 2], [2, 3, 0, 1]]
+        if k == 3: return [[0, 1, 2], [0, 2, 1], [1, 2, 0]]
+        if k == 2: return [[0, 1]]
+        raise Exception('Unexpected input value.')
 
     def get_hash(self, nums):
         return '='.join([f'{num}' for num in nums])
@@ -100,6 +108,8 @@ def main():
     twenty_four_calculator = TwentyFourCalculator()
     total_ct = 0
     sln_ct = 0
+    start_time = time.time()
+
     for card1 in range(1, 14):
         for card2 in range(card1, 14):
             for card3 in range(card2, 14):
@@ -116,6 +126,15 @@ def main():
                     print(rst_str)
     print('Total: ', total_ct)
     print('Solution: ', sln_ct)
+    print()
+
+    end_time = time.time()
+    time_elap = end_time - start_time
+    if total_ct == 1820 and sln_ct == 1362:
+        print('All results look good.')
+    else:
+        print('Result number has ERROR.')
+    print("It took", time_elap, "seconds!")
     
                 
 if __name__ == "__main__":
