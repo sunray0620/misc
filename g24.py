@@ -1,74 +1,35 @@
+'''
+A class to calculate solution for 24 game.
+Also iterate all combinations to see how many has at least one solution.
+'''
 from typing import List
 import time
 
-
 class TwentyFourCalculator:
+    '''This class is a 24 game calculator. It returns a solution, or None if no solution.'''
     def __init__(self):
         self.cards = {}
-    
+
     def cal_24(self, nums: List[int]) -> bool:
-        nums = [[num, f'{num}'] for num in nums]
-        nums = sorted(nums)
-        n1 = [num[0] for num in nums]
-        cards_hash = self.get_hash(n1)
+        '''public method to calculate a solution for 4 cards.'''
+        cards_hash = self.get_hash(nums)
         if cards_hash in self.cards:
             return self.cards[cards_hash]
-        
-        rst = self.go4(nums, n1)
-        sln = 'None'
-        if rst:
-            sln = self.cards[cards_hash]
+
+        rst = self.go4([[num, f'{num}'] for num in nums], nums)
+        sln = self.cards[cards_hash] if rst else 'None'
         return sln
-        
-
-    def go1(self, nums, cards):
-        rst = False
-        if len(nums) == 1:
-            # rst = nums[0][0] == 24
-            rst = abs(nums[0][0] - 24) < 0.0001
-        else:
-            abc # should never gets here.
-        
-        cards_hash = self.get_hash(cards)
-        if rst:
-            self.cards[cards_hash] = nums[0][1]
-        return rst
-
-    def go2(self, nums, cards):
-        
-        rst = False
-        [n1, p1], [n2, p2] = nums[0], nums[1]
-        # Add
-        rst = rst or self.go1([[n1 + n2, f'({p1})+({p2})']], cards)
-        # Sub
-        if n1 >= n2: rst = rst or self.go1([[n1 - n2, f'({p1})-({p2})']], cards)
-        if n2 >= n1: rst = rst or self.go1([[n2 - n1, f'({p2})-({p1})']], cards)
-        # Mul
-        rst = rst or self.go1([[n1 * n2, f'({p1})*({p2})']], cards)
-        # Div
-        if n2 != 0: rst = rst or self.go1([[n1 / n2, f'({p1})/({p2})']], cards)
-        if n1 != 0: rst = rst or self.go1([[n2 / n1, f'({p2})/({p1})']], cards)
-        return rst
-
-    def go3(self, nums, cards):
-        rst = False
-        perms = [[0, 1, 2], [0, 2, 1], [1, 2, 0]]
-        for i1, i2, i3 in perms:
-            [n1, p1], [n2, p2], [n3, p3] = nums[i1], nums[i2], nums[i3]
-            # Add
-            rst = rst or self.go2([[n1 + n2, f'({p1})+({p2})'], [n3, p3]], cards)
-            # Sub
-            if n1 >= n2: rst = rst or self.go2([[n1 - n2, f'({p1})-({p2})'], [n3, p3]], cards)
-            if n2 >= n1: rst = rst or self.go2([[n2 - n1, f'({p2})-({p1})'], [n3, p3]], cards)
-            # Mul
-            rst = rst or self.go2([[n1 * n2, f'({p1})*({p2})'], [n3, p3]], cards)
-            # Div
-            if n2 != 0: rst = rst or self.go2([[n1 / n2, f'({p1})/({p2})'], [n3, p3]], cards)
-            if n1 != 0: rst = rst or self.go2([[n2 / n1, f'({p2})/({p1})'], [n3, p3]], cards)
-        return rst
 
     def go4(self, nums, cards):
+        '''Recursive. Calculate towards 24.'''
         k = len(nums)
+        if k == 1:
+            rst = abs(nums[0][0] - 24) < 0.0001
+            if rst:
+                cards_hash = self.get_hash(cards)
+                self.cards[cards_hash] = nums[0][1]
+            return rst
+
         rst = False
         perms = self.get_perms(k)
         for perm in perms:
@@ -77,34 +38,46 @@ class TwentyFourCalculator:
             others = [nums[perm[i]] for i in range(2, len(perm))]
 
             # Add
-            rst = rst or self.go3([[n1 + n2, f'({p1})+({p2})']] + others, cards)
+            rst = rst or self.go4([[n1 + n2, f'({p1})+({p2})']] + others, cards)
             # Sub
-            if n1 >= n2: rst = rst or self.go3([[n1 - n2, f'({p1})-({p2})']] + others, cards)
-            if n2 >= n1: rst = rst or self.go3([[n2 - n1, f'({p2})-({p1})']] + others, cards)
+            if n1 >= n2:
+                rst = rst or self.go4([[n1 - n2, f'({p1})-({p2})']] + others, cards)
+            if n2 >= n1:
+                rst = rst or self.go4([[n2 - n1, f'({p2})-({p1})']] + others, cards)
             # Mul
-            rst = rst or self.go3([[n1 * n2, f'({p1})*({p2})']] + others, cards)
+            rst = rst or self.go4([[n1 * n2, f'({p1})*({p2})']] + others, cards)
             # Div
-            if n2 != 0: rst = rst or self.go3([[n1 / n2, f'({p1})/({p2})']] + others, cards)
-            if n1 != 0: rst = rst or self.go3([[n2 / n1, f'({p2})/({p1})']] + others, cards)
+            if n2 != 0:
+                rst = rst or self.go4([[n1 / n2, f'({p1})/({p2})']] + others, cards)
+            if n1 != 0:
+                rst = rst or self.go4([[n2 / n1, f'({p2})/({p1})']] + others, cards)
         return rst
 
     def get_perms(self, k):
-        if k == 4: return [[0, 1, 2, 3], [0, 2, 1, 3], [0, 3, 1, 2], [1, 2, 0, 3], [1, 3, 0, 2], [2, 3, 0, 1]]
-        if k == 3: return [[0, 1, 2], [0, 2, 1], [1, 2, 0]]
-        if k == 2: return [[0, 1]]
-        raise Exception('Unexpected input value.')
+        '''Get permutation of possible operations.'''
+        if k == 4:
+            return [[0, 1, 2, 3], [0, 2, 1, 3], [0, 3, 1, 2],
+                    [1, 2, 0, 3], [1, 3, 0, 2], [2, 3, 0, 1]]
+        if k == 3:
+            return [[0, 1, 2], [0, 2, 1], [1, 2, 0]]
+        if k == 2:
+            return [[0, 1]]
+        raise ValueError('Unexpected input value.')
 
     def get_hash(self, nums):
+        '''Get the hash value of 4 cards.'''
         return '='.join([f'{num}' for num in nums])
 
 
 def main1():
+    '''Calculate one single combination.'''
     cards = [5, 5, 7, 11]
     twenty_four_calculator = TwentyFourCalculator()
     rst = twenty_four_calculator.cal_24(cards)
     print(rst)
-    
+
 def main():
+    '''Iterate all combination and calculate solution.'''
     twenty_four_calculator = TwentyFourCalculator()
     total_ct = 0
     sln_ct = 0
@@ -135,7 +108,7 @@ def main():
     else:
         print('Result number has ERROR.')
     print("It took", time_elap, "seconds!")
-    
-                
+
+
 if __name__ == "__main__":
     main()
