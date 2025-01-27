@@ -10,8 +10,9 @@ class TwentyFourCalculator:
     def __init__(self):
         self.cards = {}
 
-    def cal_24(self, nums: List[int]) -> bool:
+    def cal_24(self, nums: List[int]) -> str:
         '''public method to calculate a solution for 4 cards.'''
+        nums = sorted(nums)
         cards_hash = self.get_hash(nums)
         if cards_hash in self.cards:
             return self.cards[cards_hash]
@@ -19,6 +20,15 @@ class TwentyFourCalculator:
         rst = self.go4([[num, f'{num}'] for num in nums], nums)
         sln = self.cards[cards_hash] if rst else 'None'
         return sln
+
+    def cal_24_with_equivalent(self, nums: List[int]) -> str:
+        '''public method to calculate a solution for 4 cards.'''
+        equivalent_cards = self.get_equivalent_cards(nums)
+        for cards in equivalent_cards:
+            cur_sln = self.cal_24(cards)
+            if cur_sln != 'None':
+                return cur_sln
+        return 'None'
 
     def go4(self, nums, cards):
         '''Recursive. Calculate towards 24.'''
@@ -71,6 +81,25 @@ class TwentyFourCalculator:
     def get_hash(self, nums):
         '''Get the hash value of 4 cards.'''
         return '='.join([f'{num}' for num in nums])
+    
+    def get_equivalent_cards(self, cards):
+        rst, rsts = [], []
+        self.get_equivalent_cards_rec(cards, 0, rst, rsts)
+        return rsts
+
+    def get_equivalent_cards_rec(self, cards, pos, rst, rsts):
+        if pos == 4:
+            rsts.append(list(rst))
+            return
+        
+        rst.append(cards[pos])
+        self.get_equivalent_cards_rec(cards, pos + 1, rst, rsts)
+        rst.pop()
+
+        if cards[pos] > 10:
+            rst.append(cards[pos] - 10)
+            self.get_equivalent_cards_rec(cards, pos + 1, rst, rsts)
+            rst.pop()
 
 
 def main1():
